@@ -1,5 +1,6 @@
 package dorkix.armored.elytra;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifiersComponent;
+import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ArmorItem;
@@ -137,6 +139,9 @@ public class ArmoredElytra implements ModInitializer {
 		// set Custom data
 		newElytra.applyComponentsFrom(
 				ComponentMap.builder().add(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(customData)).build());
+
+		newElytra.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(Collections.emptyList(),
+				Collections.emptyList(), List.of(armorType), Collections.emptyList()));
 
 		return newElytra;
 	}
