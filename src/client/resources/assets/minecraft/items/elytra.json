@@ -198,7 +198,17 @@
             ],
             "fallback": {
               "type": "minecraft:model",
-              "model": "minecraft:item/elytra"
+              "model": "armored_elytra:item/elytra_leather_chestplate",
+              "tints": [
+                {
+                  "type": "minecraft:constant",
+                  "value": [1, 1, 1]
+                },
+                {
+                  "type": "minecraft:dye",
+                  "default": -6265536
+                }
+              ]
             },
             "property": "minecraft:trim_material"
           },
@@ -288,7 +298,7 @@
             ],
             "fallback": {
               "type": "minecraft:model",
-              "model": "minecraft:item/elytra"
+              "model": "armored_elytra:item/elytra_netherite_chestplate"
             },
             "property": "minecraft:trim_material"
           },
@@ -378,7 +388,7 @@
             ],
             "fallback": {
               "type": "minecraft:model",
-              "model": "minecraft:item/elytra"
+              "model": "armored_elytra:item/elytra_diamond_chestplate"
             },
             "property": "minecraft:trim_material"
           },
@@ -468,7 +478,7 @@
             ],
             "fallback": {
               "type": "minecraft:model",
-              "model": "minecraft:item/elytra"
+              "model": "armored_elytra:item/elytra_golden_chestplate"
             },
             "property": "minecraft:trim_material"
           },
@@ -558,7 +568,7 @@
             ],
             "fallback": {
               "type": "minecraft:model",
-              "model": "minecraft:item/elytra"
+              "model": "armored_elytra:item/elytra_iron_chestplate"
             },
             "property": "minecraft:trim_material"
           },
@@ -648,7 +658,7 @@
             ],
             "fallback": {
               "type": "minecraft:model",
-              "model": "minecraft:item/elytra"
+              "model": "armored_elytra:item/elytra_chainmail_chestplate"
             },
             "property": "minecraft:trim_material"
           },
