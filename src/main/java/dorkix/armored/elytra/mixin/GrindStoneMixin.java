@@ -1,5 +1,7 @@
 package dorkix.armored.elytra.mixin;
 
+import java.util.Optional;
+
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -61,19 +63,28 @@ public abstract class GrindStoneMixin extends ScreenHandler {
     private void showSplitResult(ItemStack inputItem, int slot) {
 
         // get the saved chestplate ItemStack as nbt
-        NbtCompound chestplateData = inputItem.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
+        Optional<NbtCompound> armorDataNbt = inputItem
+                .getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
                 .copyNbt().getCompound(ArmoredElytra.CHESTPLATE_DATA.toString());
-        NbtCompound elytraData = inputItem.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
+        Optional<NbtCompound> elytraDataNbt = inputItem
+                .getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
                 .copyNbt().getCompound(ArmoredElytra.ELYTRA_DATA.toString());
 
+        if (elytraDataNbt.isEmpty() || armorDataNbt.isEmpty()) {
+            return;
+        }
+
+        NbtCompound elytraData = elytraDataNbt.get();
+        NbtCompound armorData = armorDataNbt.get();
+
         // if any of the source item data is missing skip this action
-        if (chestplateData.isEmpty() || elytraData.isEmpty())
+        if (armorData.isEmpty() || elytraData.isEmpty())
             return;
 
         // if found set the GrindStone result slot to contain the chestplate item
         this.context.run((world, blockpos) -> {
             this.result.setStack(slot,
-                    ItemStack.fromNbt(world.getRegistryManager(), chestplateData).orElse(ItemStack.EMPTY));
+                    ItemStack.fromNbt(world.getRegistryManager(), armorData).orElse(ItemStack.EMPTY));
         });
 
         sendContentUpdates();
@@ -111,8 +122,16 @@ public abstract class GrindStoneMixin extends ScreenHandler {
                     .getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
                     .copyNbt();
 
-            NbtCompound elytraData = customData.getCompound(ArmoredElytra.ELYTRA_DATA.toString());
-            NbtCompound armorData = customData.getCompound(ArmoredElytra.CHESTPLATE_DATA.toString());
+            Optional<NbtCompound> elytraDataNbt = customData.getCompound(ArmoredElytra.ELYTRA_DATA.toString());
+            Optional<NbtCompound> armorDataNbt = customData.getCompound(ArmoredElytra.CHESTPLATE_DATA.toString());
+
+            if (elytraDataNbt.isEmpty() || armorDataNbt.isEmpty()) {
+                return false;
+            }
+
+            NbtCompound elytraData = elytraDataNbt.get();
+            NbtCompound armorData = armorDataNbt.get();
+
             // if not an armored elytra return to normal functioning
             if (elytraData.isEmpty() || armorData.isEmpty()) {
                 return false;

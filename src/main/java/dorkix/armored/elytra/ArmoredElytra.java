@@ -2,6 +2,7 @@ package dorkix.armored.elytra;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,6 @@ import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -44,7 +44,7 @@ public class ArmoredElytra implements ModInitializer {
 	public static ItemStack createArmoredElytra(ItemStack elytra, ItemStack armor,
 			ScreenHandlerContext context, String newItemName) {
 		// return on invalid items
-		if (!(armor.isIn(ItemTags.CHEST_ARMOR) && armor.getItem() instanceof ArmorItem && elytra.isOf(Items.ELYTRA)))
+		if (!(armor.isIn(ItemTags.CHEST_ARMOR) && elytra.isOf(Items.ELYTRA)))
 			return armor;
 
 		var newElytra = elytra.copy();
@@ -155,8 +155,15 @@ public class ArmoredElytra implements ModInitializer {
 				.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
 				.copyNbt();
 
-		NbtCompound elytraData = customData.getCompound(ArmoredElytra.ELYTRA_DATA.toString());
-		NbtCompound armorData = customData.getCompound(ArmoredElytra.CHESTPLATE_DATA.toString());
+		Optional<NbtCompound> elytraDataNbt = customData.getCompound(ArmoredElytra.ELYTRA_DATA.toString());
+		Optional<NbtCompound> armorDataNbt = customData.getCompound(ArmoredElytra.CHESTPLATE_DATA.toString());
+
+		if (elytraDataNbt.isEmpty() || armorDataNbt.isEmpty()) {
+			return false;
+		}
+
+		NbtCompound elytraData = elytraDataNbt.get();
+		NbtCompound armorData = armorDataNbt.get();
 
 		if (elytraData.isEmpty() || armorData.isEmpty()) {
 			return false;
