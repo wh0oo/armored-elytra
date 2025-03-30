@@ -1,5 +1,7 @@
 package dorkix.armored.elytra;
 
+import java.util.Optional;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -15,8 +17,14 @@ public class RenderHelper {
       return stack;
 
     // get the saved chestplate ItemStack as nbt
-    NbtCompound chestplateData = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
+    Optional<NbtCompound> chestplateDataNbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
         .copyNbt().getCompound(ArmoredElytra.CHESTPLATE_DATA.toString());
+
+    if (chestplateDataNbt.isEmpty()) {
+      return stack;
+    }
+
+    NbtCompound chestplateData = chestplateDataNbt.get();
 
     if (chestplateData.isEmpty())
       return stack;
@@ -37,8 +45,13 @@ public class RenderHelper {
       return stack;
 
     // get the saved elytra ItemStack as nbt
-    NbtCompound elytraData = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
+    Optional<NbtCompound> elytraDataNbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
         .copyNbt().getCompound(ArmoredElytra.ELYTRA_DATA.toString());
+
+    if (elytraDataNbt.isEmpty())
+      return stack;
+
+    NbtCompound elytraData = elytraDataNbt.get();
 
     if (elytraData.isEmpty())
       return stack;
