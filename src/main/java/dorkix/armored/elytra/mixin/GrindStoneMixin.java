@@ -20,6 +20,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.screen.GrindstoneScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
@@ -70,6 +71,21 @@ public abstract class GrindStoneMixin extends ScreenHandler {
         Optional<NbtCompound> elytraDataNbt = inputItem
                 .getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
                 .copyNbt().getCompound(ArmoredElytra.ELYTRA_DATA.toString());
+
+        // Vanilla Tweaks Compatibility
+        BundleContentsComponent bundleContents = inputItem
+                .getOrDefault(DataComponentTypes.BUNDLE_CONTENTS, BundleContentsComponent.DEFAULT);
+        if (!bundleContents.isEmpty()) {
+            bundleContents.iterate().forEach(item -> {
+                if (item.isIn(ItemTags.CHEST_ARMOR)) {
+                    this.context.run((world, blockpos) -> {
+                        this.result.setStack(slot, item);
+                    });
+                    sendContentUpdates();
+                    return;
+                }
+            });
+        }
 
         if (elytraDataNbt.isEmpty() || armorDataNbt.isEmpty()) {
             return;
@@ -187,9 +203,9 @@ public abstract class GrindStoneMixin extends ScreenHandler {
             BundleContentsComponent bundleContents = ((GrindstoneScreenHandlerAccessor) field_16780)
                     .getInput().getStack(slot).getOrDefault(DataComponentTypes.BUNDLE_CONTENTS,
                             BundleContentsComponent.DEFAULT);
-            if (!bundleContents.isEmpty())
+            if (bundleContents.isEmpty())
                 return false;
-
+ 
             var context = ((GrindstoneScreenHandlerAccessor) field_16780).getContext();
             bundleContents.iterate().forEach(item -> {
                 if (item.isOf(Items.ELYTRA)) {
@@ -215,9 +231,8 @@ public abstract class GrindStoneMixin extends ScreenHandler {
         private void takeSeparatedChestplate(PlayerEntity player, ItemStack stack,
                 CallbackInfo ci) {
 
-            if (!trySplitArmoredElytra(0) && !trySplitArmoredElytra(1)) {
-                return;
-            } else if (!trySplitVTArmoredElytra(0) && !trySplitVTArmoredElytra(1)) {
+            if (!trySplitArmoredElytra(0) && !trySplitArmoredElytra(1)
+                    && !trySplitVTArmoredElytra(0) && !trySplitVTArmoredElytra(1)) {
                 return;
             }
 
