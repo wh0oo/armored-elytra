@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import dorkix.armored.elytra.ArmoredElytra;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.BundleContentsComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,6 +20,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.screen.GrindstoneScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
@@ -69,6 +71,21 @@ public abstract class GrindStoneMixin extends ScreenHandler {
         Optional<NbtCompound> elytraDataNbt = inputItem
                 .getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
                 .copyNbt().getCompound(ArmoredElytra.ELYTRA_DATA.toString());
+
+        // Vanilla Tweaks Compatibility
+        BundleContentsComponent bundleContents = inputItem
+                .getOrDefault(DataComponentTypes.BUNDLE_CONTENTS, BundleContentsComponent.DEFAULT);
+        if (!bundleContents.isEmpty()) {
+            bundleContents.iterate().forEach(item -> {
+                if (item.isIn(ItemTags.CHEST_ARMOR)) {
+                    this.context.run((world, blockpos) -> {
+                        this.result.setStack(slot, item);
+                    });
+                    sendContentUpdates();
+                    return;
+                }
+            });
+        }
 
         if (elytraDataNbt.isEmpty() || armorDataNbt.isEmpty()) {
             return;
@@ -181,6 +198,28 @@ public abstract class GrindStoneMixin extends ScreenHandler {
             return true;
         }
 
+        // try split the elytra for the given slot (Vanilla Tweaks Format)
+        private boolean trySplitVTArmoredElytra(int slot) {
+            BundleContentsComponent bundleContents = ((GrindstoneScreenHandlerAccessor) field_16780)
+                    .getInput().getStack(slot).getOrDefault(DataComponentTypes.BUNDLE_CONTENTS,
+                            BundleContentsComponent.DEFAULT);
+            if (bundleContents.isEmpty())
+                return false;
+ 
+            var context = ((GrindstoneScreenHandlerAccessor) field_16780).getContext();
+            bundleContents.iterate().forEach(item -> {
+                if (item.isOf(Items.ELYTRA)) {
+                    context.run((world, blockPos) -> {
+                        world.playSound(null, blockPos, SoundEvents.BLOCK_GRINDSTONE_USE,
+                                SoundCategory.BLOCKS);
+                        ((GrindstoneScreenHandlerAccessor) field_16780).getInput().setStack(slot,
+                                item);
+                    });
+                }
+            });
+            return true;
+        }
+
         // When the user takes out result chestplate from the
         // GrindStoneMixin.showSplitResult() try getting the source elytry from the
         // input slots, replace the armored elytra with the source elytra and cancel the
@@ -192,7 +231,8 @@ public abstract class GrindStoneMixin extends ScreenHandler {
         private void takeSeparatedChestplate(PlayerEntity player, ItemStack stack,
                 CallbackInfo ci) {
 
-            if (!trySplitArmoredElytra(0) && !trySplitArmoredElytra(1)) {
+            if (!trySplitArmoredElytra(0) && !trySplitArmoredElytra(1)
+                    && !trySplitVTArmoredElytra(0) && !trySplitVTArmoredElytra(1)) {
                 return;
             }
 
