@@ -7,6 +7,8 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.ComponentMap;
@@ -15,11 +17,14 @@ import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.screen.ScreenHandlerContext;
+import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -112,18 +117,46 @@ public class ArmoredElytra implements ModInitializer {
 
 		// Set description
 		var armorHasCustomName = armor.get(DataComponentTypes.CUSTOM_NAME) != null;
+
+		List<Text> loreTexts = Lists.newArrayList();
+
+		if (trims != null && trims.isPresent() && loreTexts != null) {
+			List<Text> trimTexts = Lists.newArrayList();
+			// We cannot add the trim component to the armored elytra bacause of the
+			// rendering, it needs to be faked with the lore component
+			trims.get().appendTooltip(Item.TooltipContext.DEFAULT, trimTexts::add, TooltipType.ADVANCED,
+					armor.getComponents());
+
+			var upgradeText = trimTexts.get(0).copy()
+					.setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY));
+			var trimText = trimTexts.get(1).copy()
+					.setStyle(Style.EMPTY.withItalic(false));
+			var materialText = trimTexts.get(2).copy()
+					.setStyle(Style.EMPTY.withItalic(false));
+
+			loreTexts.addAll(List.of(
+					ScreenTexts.EMPTY,
+					upgradeText,
+					trimText,
+					materialText));
+		}
+
+		loreTexts.addAll(List.of(
+				ScreenTexts.EMPTY,
+				Text.translatableWithFallback(
+						"item." + ArmoredElytra.MOD_ID + ".item_lore_text", "With chesplate:")
+						.copy()
+						.setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+				ScreenTexts.space().append(armor.getName())
+						.setStyle(Style.EMPTY.withItalic(armorHasCustomName)
+								.withColor(Formatting.LIGHT_PURPLE))));
+
+		var loreComponent = new LoreComponent(loreTexts);
+
 		newElytra.applyComponentsFrom(
 				ComponentMap.builder()
 						.add(DataComponentTypes.LORE,
-								new LoreComponent(List.of(
-										Text.of(""),
-										Text.translatableWithFallback(
-												"item." + ArmoredElytra.MOD_ID + ".item_lore_text", "With chesplate:")
-												.copy()
-												.setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
-										Text.of(" ").copy().append(armor.getName())
-												.setStyle(Style.EMPTY.withItalic(armorHasCustomName)
-														.withColor(Formatting.LIGHT_PURPLE)))))
+								loreComponent)
 						.build());
 
 		// set Custom data

@@ -10,7 +10,7 @@
     "sources": "https://github.com/DorkixAzIgazi/armored-elytra"
   },
   "license": "MIT",
-  "icon": "assets/armored-elytra/icon.png",
+  "icon": "assets/armored_elytra/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": ["dorkix.armored.elytra.ArmoredElytra"],
