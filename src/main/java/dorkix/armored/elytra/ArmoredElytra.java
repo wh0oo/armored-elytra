@@ -55,14 +55,12 @@ public class ArmoredElytra implements ModInitializer {
 		var newElytra = elytra.copy();
 
 		NbtCompound customData = elytra.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT).copyNbt();
-		// Convert ItemStack to Nbt and store it in the custom data component of the
-		// elytra to restore the items later
 
 		context.run((world, blockPos) -> {
 			customData.put(ArmoredElytra.ELYTRA_DATA.toString(),
-					elytra.toNbt(world.getRegistryManager()));
+					ItemStack.save(world, elytra));
 			customData.put(ArmoredElytra.CHESTPLATE_DATA.toString(),
-					armor.toNbt(world.getRegistryManager()));
+					ItemStack.save(world, armor));
 		});
 
 		// Copy Attribute modifiers
@@ -92,8 +90,7 @@ public class ArmoredElytra implements ModInitializer {
 			}
 		}
 
-		// Copy Enchaments
-
+		// Copy Enchantments
 		for (var ench : armor.getEnchantments().getEnchantments()) {
 			int level = 1;
 			var key = ench.getKey();
@@ -120,10 +117,8 @@ public class ArmoredElytra implements ModInitializer {
 
 		List<Text> loreTexts = Lists.newArrayList();
 
-		if (trims != null && trims.isPresent() && loreTexts != null) {
+		if (trims != null && trims.isPresent()) {
 			List<Text> trimTexts = Lists.newArrayList();
-			// We cannot add the trim component to the armored elytra bacause of the
-			// rendering, it needs to be faked with the lore component
 			trims.get().appendTooltip(Item.TooltipContext.DEFAULT, trimTexts::add, TooltipType.ADVANCED,
 					armor.getComponents());
 
@@ -144,7 +139,7 @@ public class ArmoredElytra implements ModInitializer {
 		loreTexts.addAll(List.of(
 				ScreenTexts.EMPTY,
 				Text.translatableWithFallback(
-						"item." + ArmoredElytra.MOD_ID + ".item_lore_text", "With chesplate:")
+						"item." + ArmoredElytra.MOD_ID + ".item_lore_text", "With chestplate:")
 						.copy()
 						.setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
 				ScreenTexts.space().append(armor.getName())
@@ -159,7 +154,7 @@ public class ArmoredElytra implements ModInitializer {
 								loreComponent)
 						.build());
 
-		// set Custom data
+		// Set Custom data
 		newElytra.applyComponentsFrom(
 				ComponentMap.builder().add(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(customData)).build());
 
